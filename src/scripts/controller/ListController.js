@@ -19,6 +19,7 @@ import Controller from './Controller';
 import MemoModel from '../model/MemoModel';
 import RouterInstance from '../libs/Router';
 import PubSubInstance from '../libs/PubSub';
+import TorrentInstance from '../libs/Torrent';
 
 export default class ListController extends Controller {
 
@@ -29,16 +30,19 @@ export default class ListController extends Controller {
     this.ctaView = document.querySelector('.js-cta');
     this.view = document.querySelector('.js-list-view');
 
+    
     Promise.all([
       this.loadCSS('/styles/voicememo-list.css'),
       this.loadScript('/third_party/moment.min.js')
     ])
     .then( () => {
-      this.getMemosAndPopulate();
-
+      this.getMemosAndPopulate()
+          .then(e => this.seed());
+    
       PubSubInstance().then(ps => {
         ps.sub(MemoModel.UPDATED, () => {
-          this.getMemosAndPopulate();
+          this.getMemosAndPopulate()
+              .then(e => this.seed());
         });
       });
 
@@ -75,7 +79,7 @@ export default class ListController extends Controller {
 
   getMemosAndPopulate () {
 
-    MemoModel.getAll('time', MemoModel.DESCENDING)
+    return MemoModel.getAll('time', MemoModel.DESCENDING)
       .then(memos => {
         this.memos = memos;
         this.populate();
@@ -98,6 +102,26 @@ export default class ListController extends Controller {
         .replace(/'/g, '&apos;');
   }
 
+  seed () {
+    this.memos.forEach((memo) => {
+      // Seed the memo.
+      TorrentInstance().then(torrentClient => {
+        torrentClient.seed(
+          memo.audio, // Audio is a blob, but that is ok.
+          {
+            name: `${memo.title}.webm`,
+            comment: memo.description || '',
+            creationDate: memo.time || Date.now()
+          },
+          torrent => {
+            console.log(torrent);
+            memo.torrentURL = torrent.magnetURI;
+            memo.put();
+          });
+      });
+    });
+  }
+
   populate () {
 
     if (!this.memos.length) {
@@ -109,9 +133,8 @@ export default class ListController extends Controller {
     this.removeEventListeners();
 
     var list = '<ol class="list-view__contents">';
-
+    
     this.memos.forEach((memo) => {
-
       var memoTimeAgo = moment(memo.time).fromNow();
       var memoTitle = this.escapeHTML(memo.title);
       var memoDescription = this.escapeHTML(memo.description);

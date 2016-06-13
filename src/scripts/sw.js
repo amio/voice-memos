@@ -108,7 +108,7 @@ self.onfetch = function(event) {
   var request = event.request;
   var url = new URL(request.url);
   var validSubsections = [
-    'create', 'details', 'edit', ''
+    'create', 'details', 'edit', 'share'
   ];
 
   var subsection = /^\/([^\/]*)/.exec(url.pathname)[1];

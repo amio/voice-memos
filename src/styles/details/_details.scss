@@ -163,6 +163,7 @@
 .details-view__delete,
 .details-view__back,
 .details-view__download,
+.details-view__share,
 .details-view__edit {
   width: 24px;
   height: 24px;
@@ -192,6 +193,13 @@
   background-image: url(/images/ic_mode_edit_24px.svg);
 }
 
+.details-view__share {
+  display: block;
+  float: right;
+  margin-left: 24px;
+  background-image: url(/images/ic_share_white_24px.svg);
+}
+
 .details-view__delete {
   display: block;
   float: right;
@@ -200,6 +208,8 @@
 
 .details-view__delete:hover,
 .details-view__delete:focus,
+.details-view__share:hover,
+.details-view__share:focus,
 .details-view__download:hover,
 .details-view__download:focus,
 .details-view__edit:hover,

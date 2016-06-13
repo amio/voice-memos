@@ -22,6 +22,7 @@ import PubSubInstance from '../libs/PubSub';
 import ToasterInstance from '../libs/Toaster';
 import DialogInstance from '../libs/Dialog';
 import RouterInstance from '../libs/Router';
+import TorrentInstance from '../libs/Torrent';
 
 export default class AppController extends Controller {
 
@@ -37,6 +38,8 @@ export default class AppController extends Controller {
 
     this.deleteMemos = this.sideNav.querySelector('.js-delete-memos');
     this.deleteMemos.addEventListener('click', this.deleteAllMemos);
+    this.shareMemos = this.sideNav.querySelector('.side-nav__share');
+    this.shareMemos.addEventListener('click', this.shareAllMemos);
 
     AppModel.get(1).then (appModel => {
 
@@ -44,6 +47,11 @@ export default class AppController extends Controller {
         router.add('_root',
             (data) => this.show(data),
             () => this.hide());
+
+        router.add('share',
+          (url) => this.fetchTorrent(location.search.slice(1)),
+          (out) => console.log(out)
+         )
       });
 
       this.appModel = appModel;
@@ -168,6 +176,51 @@ export default class AppController extends Controller {
     });
   }
 
+  fetchTorrent(url) {
+    const seeds = new URLSearchParams(url);
+    let seedURLs = seeds.getAll('seeds');
+    if(seedURLs.length == 0) [seeds.get('seeds')];
+
+    for(let seedURL of seedURLs) {
+      TorrentInstance().then(torrentClient => {
+        console.log("adding torrent", seedURL)
+        torrentClient.add(seedURL, {}, torrent => {
+          console.log("add", torrent);
+          var file = torrent.files[0];
+
+          file.getBlobURL((err, url) => {
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'blob';
+            xhr.onload = function(e) {
+              if (this.status == 200) {
+                var audioData = this.response;
+                
+                const newMemo = new MemoModel({
+                  audio: audioData,
+                  volumeData: audioData, // Assuming pre-normalised
+                  title: torrent.name.replace(/\.webm$/, ""),
+                  torrentURL: torrent.magnetURI,
+                  description: ""
+                });
+
+                newMemo.put().then(() => {
+                  PubSubInstance().then(ps => {
+                    ps.pub(MemoModel.UPDATED);
+                  });
+                });
+              }
+            };
+            xhr.send();
+            
+          });
+
+        });
+      });
+    }
+  }
+
   supportsGUMandWebAudio () {
     return (navigator.getUserMedia ||
       navigator.webkitGetUserMedia ||
@@ -253,6 +306,20 @@ export default class AppController extends Controller {
         window.location = '/';
       })
       .catch( () => {});
+  }
+
+  shareAllMemos(e) { 
+    e.preventDefault();
+
+    MemoModel.getAll().then(memos => {
+      let urls = []
+      memos.forEach(memo => urls.push(encodeURIComponent(memo.torrentURL)));
+      return `share?seeds=${urls.join('&seeds=')}`;
+    }).then(uri => {
+      history.pushState({}, "Share seed", uri)
+    });
+
+    return false;
   }
 
   deleteAllMemos() {

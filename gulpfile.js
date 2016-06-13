@@ -64,10 +64,10 @@ function buildBundle(bundleName) {
       .on('error', gutil.log.bind(gutil, 'Browserify Error'))
       .pipe(source(name));
 
-  if (isProd) {
+ /* if (isProd) {
     b = b.pipe(streamify(uglify()));
   }
-
+*/
   return b.pipe(license('Apache', {
       organization: 'Google Inc. All rights reserved.'
     }))

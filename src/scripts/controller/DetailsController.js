@@ -38,6 +38,7 @@ export default class DetailsController extends Controller {
 
     this.backButton = this.view.querySelector('.js-back');
     this.downloadButton = this.view.querySelector('.js-download');
+    this.shareButton = this.view.querySelector('.js-share');
     this.editButton = this.view.querySelector('.js-edit');
     this.deleteButton = this.view.querySelector('.js-delete');
 
@@ -91,6 +92,7 @@ export default class DetailsController extends Controller {
     this.onEditButtonClickBound = this.onEditButtonClick.bind(this);
     this.onBackButtonClickBound = this.onBackButtonClick.bind(this);
     this.onDeleteButtonClickBound = this.onDeleteButtonClick.bind(this);
+    this.onShareButtonClickBound = this.onShareButtonClick.bind(this);
   }
 
   releaseAudioURL () {
@@ -489,6 +491,14 @@ export default class DetailsController extends Controller {
     });
   }
 
+  onShareButtonClick(e) {
+    MemoModel.get(this.memoId).then( (memo) => {
+      return `/share?seeds=${encodeURIComponent(memo.torrentURL)}`;
+    }).then(uri => {
+      history.pushState({}, "Share seed", uri)
+    });
+  }
+
   onDeleteButtonClick () {
 
     DialogInstance()
@@ -527,6 +537,7 @@ export default class DetailsController extends Controller {
     this.editButton.addEventListener('click', this.onEditButtonClickBound);
     this.backButton.addEventListener('click', this.onBackButtonClickBound);
     this.deleteButton.addEventListener('click', this.onDeleteButtonClickBound);
+    this.shareButton.addEventListener('click', this.onShareButtonClickBound);
   }
 
   removeEventListeners () {
@@ -538,6 +549,8 @@ export default class DetailsController extends Controller {
     this.backButton.removeEventListener('click', this.onBackButtonClickBound);
     this.deleteButton.removeEventListener('click',
         this.onDeleteButtonClickBound);
+    this.shareButton.removeEventListener('click',
+        this.onShareButtonClickBound);
   }
 
   setTabIndexes () {
@@ -546,6 +559,7 @@ export default class DetailsController extends Controller {
     this.deleteButton.tabIndex = 3;
     this.editButton.tabIndex = 4;
     this.downloadButton.tabIndex = 5;
+    this.shareButton.tabIndex = 6;
 
     this.audioPlaybackButton.focus();
   }
@@ -556,7 +570,7 @@ export default class DetailsController extends Controller {
     this.deleteButton.tabIndex = -1;
     this.editButton.tabIndex = -1;
     this.downloadButton.tabIndex = -1;
-
+    this.shareButton.tabIndex = -1;
   }
 
 }
