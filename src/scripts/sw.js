@@ -31,6 +31,7 @@ self.oninstall = function(event) {
     '/images/ic_close_24px.svg',
     '/images/ic_delete_24px.svg',
     '/images/ic_delete_white_24px.svg',
+    '/images/ic_share_white_24px.svg',
     '/images/ic_done_24px.svg',
     '/images/ic_feedback_24px.svg',
     '/images/ic_file_download_24px.svg',
