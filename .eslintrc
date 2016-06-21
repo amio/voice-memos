@@ -5,7 +5,6 @@
     "node": true
   },
 
-  "parser": "babel-eslint",
   "extends": "eslint:recommended",
   "rules": {
     "max-len": [2, 80, 2],

@@ -19,7 +19,7 @@ var isProd = false;
 var gulp = require('gulp'),
     fs = require('fs'),
     del = require('del'),
-    watch = require('gulp-watch')
+    // watch = require('gulp-watch'),
     watchify = require('watchify'),
     browserify = require('browserify'),
     source = require('vinyl-source-stream'),
@@ -129,6 +129,10 @@ gulp.task('root', function() {
 
   gulp.src('./src/favicon.ico')
     .pipe(gulp.dest('./dist/'))
+
+  gulp.src('./src/sw.js')
+    .pipe(replace(/@VERSION@/g, version))
+    .pipe(gulp.dest('./dist'))
 });
 
 /** HTML */
@@ -202,4 +206,3 @@ gulp.task('default', function() {
 gulp.task('dev', function() {
   return runSequence('clean', 'getversion', allTasks, 'watch');
 });
-
